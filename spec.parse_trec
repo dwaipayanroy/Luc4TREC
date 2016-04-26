@@ -1,0 +1,397 @@
+#### GENERIC PREPARSER FOR TREC
+doc.pp_section.0.string	"Xref: "
+doc.pp_section.0.action	discard
+doc.pp_section.0.oneline_flag	true
+doc.pp_section.1.string	"X-Sender: "
+doc.pp_section.1.action	discard
+doc.pp_section.1.oneline_flag	true
+doc.pp_section.2.string	"X-Newsreader: "
+doc.pp_section.2.action	discard
+doc.pp_section.2.oneline_flag	true
+doc.pp_section.3.string	"Subject:"
+doc.pp_section.3.section_name	"s"
+doc.pp_section.3.action	copy
+doc.pp_section.3.oneline_flag	true
+doc.pp_section.4.string	"Sender: "
+doc.pp_section.4.action	discard
+doc.pp_section.4.oneline_flag	true
+doc.pp_section.5.string	"References: "
+doc.pp_section.5.action	discard
+doc.pp_section.5.oneline_flag	true
+doc.pp_section.6.string	"Path: "
+doc.pp_section.6.action	discard
+doc.pp_section.6.oneline_flag	true
+doc.pp_section.7.string	"Organization: "
+doc.pp_section.7.action	discard
+doc.pp_section.7.oneline_flag	true
+doc.pp_section.8.string	"Newsgroups: "
+doc.pp_section.8.action	discard
+doc.pp_section.8.oneline_flag	true
+doc.pp_section.9.string	"NNTP-Posting-Host: "
+doc.pp_section.9.action	discard
+doc.pp_section.9.oneline_flag	true
+doc.pp_section.10.string	"Message-ID: "
+doc.pp_section.10.action	discard
+doc.pp_section.10.oneline_flag	true
+doc.pp_section.11.string	"Lines: "
+doc.pp_section.11.action	discard
+doc.pp_section.11.oneline_flag	true
+doc.pp_section.12.string	"Keywords:"
+doc.pp_section.12.section_name	"s"
+doc.pp_section.12.action	copy
+doc.pp_section.12.oneline_flag	true
+doc.pp_section.13.string	"In article &lt"
+doc.pp_section.13.action	discard
+doc.pp_section.13.oneline_flag	true
+doc.pp_section.14.string	"From: "
+doc.pp_section.14.action	discard
+doc.pp_section.14.oneline_flag	true
+doc.pp_section.15.string	"Distribution: "
+doc.pp_section.15.action	discard
+doc.pp_section.15.oneline_flag	true
+doc.pp_section.16.string	"Date: "
+doc.pp_section.16.action	discard
+doc.pp_section.16.oneline_flag	true
+doc.pp_section.17.string	"Article: "
+doc.pp_section.17.action	discard
+doc.pp_section.17.oneline_flag	true
+doc.pp_section.18.string	"<headline>"
+doc.pp_section.18.section_name	"t"
+doc.pp_section.18.action	copy
+doc.pp_section.19.string	"<WORD.CT>"
+doc.pp_section.19.action	discard
+doc.pp_section.19.oneline_flag	true
+doc.pp_section.20.string	"<WKU>"
+doc.pp_section.20.action	discard
+doc.pp_section.20.oneline_flag	true
+doc.pp_section.21.string	"<TTL>"
+doc.pp_section.21.section_name	"t"
+doc.pp_section.21.action	copy
+doc.pp_section.21.oneline_flag	true
+doc.pp_section.22.string	"<TRAILER"
+doc.pp_section.22.action	discard
+doc.pp_section.22.oneline_flag	true
+doc.pp_section.23.string	"<TITLE>"
+doc.pp_section.23.section_name	"t"
+doc.pp_section.23.action	copy
+doc.pp_section.24.string	"<TEXT>"
+doc.pp_section.24.section_name	"w"
+doc.pp_section.24.action	copy
+doc.pp_section.25.string	"<TEXT"
+doc.pp_section.25.section_name	"w"
+doc.pp_section.25.action	copy
+doc.pp_section.26.string	"<SUMMARY>"
+doc.pp_section.26.section_name	"s"
+doc.pp_section.26.action	copy
+doc.pp_section.27.string	"<STORYID"
+doc.pp_section.27.action	discard
+doc.pp_section.27.oneline_flag	true
+doc.pp_section.28.string	"<STATE>"
+doc.pp_section.28.action	discard
+doc.pp_section.28.oneline_flag	true
+doc.pp_section.29.string	"<SPECS>"
+doc.pp_section.29.section_name	"w"
+doc.pp_section.29.action	copy
+doc.pp_section.30.string	"<SOURCE>"
+doc.pp_section.30.action	discard
+doc.pp_section.30.oneline_flag	true
+doc.pp_section.31.string	"<SO>"
+doc.pp_section.31.action	discard
+doc.pp_section.31.oneline_flag	true
+doc.pp_section.32.string	"<SECTION>"
+doc.pp_section.32.action	discard
+doc.pp_section.32.oneline_flag	true
+doc.pp_section.33.string	"<SECOND>"
+doc.pp_section.33.action	discard
+doc.pp_section.33.oneline_flag	true
+doc.pp_section.34.string	"<REGION>"
+doc.pp_section.34.action	discard
+doc.pp_section.34.oneline_flag	true
+doc.pp_section.35.string	"<PUBYEAR>"
+doc.pp_section.35.action	discard
+doc.pp_section.35.oneline_flag	true
+doc.pp_section.36.string	"<PUBDATE>"
+doc.pp_section.36.action	discard
+doc.pp_section.36.oneline_flag	true
+doc.pp_section.37.string	"<PUB>"
+doc.pp_section.37.action	discard
+doc.pp_section.37.oneline_flag	true
+doc.pp_section.38.string	"<PROFILE>"
+doc.pp_section.38.action	discard
+doc.pp_section.38.oneline_flag	true
+doc.pp_section.39.string	"<PREAMBLE"
+doc.pp_section.39.section_name	"t"
+doc.pp_section.39.action	copy
+doc.pp_section.40.string	"<HEADLINE>"
+doc.pp_section.40.section_name	"t"
+doc.pp_section.40.action	copy
+doc.pp_section.41.string	"<PG.COL>"
+doc.pp_section.41.action	discard
+doc.pp_section.41.oneline_flag	true
+doc.pp_section.42.string	"<PARENT>"
+doc.pp_section.42.action	discard
+doc.pp_section.42.oneline_flag	true
+doc.pp_section.43.string	"<PAGE>"
+doc.pp_section.43.action	discard
+doc.pp_section.43.oneline_flag	true
+doc.pp_section.44.string	"<NAME>"
+doc.pp_section.44.action	discard
+doc.pp_section.44.oneline_flag	true
+doc.pp_section.45.string	"<MONTH>"
+doc.pp_section.45.action	discard
+doc.pp_section.45.oneline_flag	true
+doc.pp_section.46.string	"<MEMO>"
+doc.pp_section.46.action	discard
+doc.pp_section.46.oneline_flag	true
+doc.pp_section.47.string	"<LP>"
+doc.pp_section.47.section_name	"s"
+doc.pp_section.47.action	copy
+doc.pp_section.48.string	"<LEADPARA>"
+doc.pp_section.48.section_name	"s"
+doc.pp_section.48.action	copy
+doc.pp_section.49.string	"<KEYS"
+doc.pp_section.49.action	discard
+doc.pp_section.49.oneline_flag	true
+doc.pp_section.50.string	"<JOURNAL>"
+doc.pp_section.50.action	discard
+doc.pp_section.50.oneline_flag	true
+doc.pp_section.51.string	"<ISD>"
+doc.pp_section.51.action	discard
+doc.pp_section.51.oneline_flag	true
+doc.pp_section.52.string	"<IN>"
+doc.pp_section.52.action	discard
+doc.pp_section.52.oneline_flag	true
+doc.pp_section.53.string	"<HT>"
+doc.pp_section.53.action	discard
+doc.pp_section.53.oneline_flag	true
+doc.pp_section.54.string	"<HL>"
+doc.pp_section.54.section_name	"t"
+doc.pp_section.54.action	copy
+doc.pp_section.55.string	"<HEAD>Eds:"
+doc.pp_section.55.action	discard
+doc.pp_section.55.oneline_flag	true
+doc.pp_section.56.string	"<HEADLINE>"
+doc.pp_section.56.section_name	"t"
+doc.pp_section.56.action	copy
+doc.pp_section.57.string	"<HEAD>"
+doc.pp_section.57.section_name	"t"
+doc.pp_section.57.action	copy
+doc.pp_section.58.string	"<H3>"
+doc.pp_section.58.section_name	"t"
+doc.pp_section.58.action	copy
+doc.pp_section.59.string	"<GV>"
+doc.pp_section.59.action	discard
+doc.pp_section.59.oneline_flag	true
+doc.pp_section.60.string	"<FIRST>"
+doc.pp_section.60.action	discard
+doc.pp_section.60.oneline_flag	true
+doc.pp_section.61.string	"<FILEID>"
+doc.pp_section.61.action	discard
+doc.pp_section.61.oneline_flag	true
+doc.pp_section.62.string	"<FEATURE>"
+doc.pp_section.62.action	discard
+doc.pp_section.62.oneline_flag	true
+doc.pp_section.63.string	"<F P=10"
+doc.pp_section.63.action	discard
+doc.pp_section.63.oneline_flag	true
+doc.pp_section.64.string	"<EDITION>"
+doc.pp_section.64.action	discard
+doc.pp_section.64.oneline_flag	true
+doc.pp_section.65.string	"<DOCNO>"
+doc.pp_section.65.section_name	"n"
+doc.pp_section.65.action	copy
+doc.pp_section.66.string	"<DOCID>"
+doc.pp_section.66.action	discard
+doc.pp_section.66.oneline_flag	true
+doc.pp_section.67.string	"<DOC>"
+doc.pp_section.67.action	discard
+doc.pp_section.67.oneline_flag	true
+doc.pp_section.67.newdoc_flag	true
+doc.pp_section.68.string	"<DESCRIPT>"
+doc.pp_section.68.action	discard
+doc.pp_section.68.oneline_flag	true
+doc.pp_section.69.string	"<DD>"
+doc.pp_section.69.action	discard
+doc.pp_section.69.oneline_flag	true
+doc.pp_section.70.string	"<DAY>"
+doc.pp_section.70.action	discard
+doc.pp_section.70.oneline_flag	true
+doc.pp_section.71.string	"<DATELINE>"
+doc.pp_section.71.action	discard
+doc.pp_section.71.oneline_flag	true
+doc.pp_section.72.string	"<DATE>"
+doc.pp_section.72.action	discard
+doc.pp_section.72.oneline_flag	true
+doc.pp_section.73.string	"<COUNTRY>"
+doc.pp_section.73.action	discard
+doc.pp_section.73.oneline_flag	true
+doc.pp_section.74.string	"<CODE>"
+doc.pp_section.74.action	discard
+doc.pp_section.74.oneline_flag	true
+doc.pp_section.75.string	"<CO>"
+doc.pp_section.75.action	discard
+doc.pp_section.75.oneline_flag	true
+doc.pp_section.76.string	"<CATEGORY>"
+doc.pp_section.76.section_name	"w"
+doc.pp_section.76.action	copy
+doc.pp_section.77.string	"<CAPTION>"
+doc.pp_section.77.section_name	"w"
+doc.pp_section.77.action	copy
+doc.pp_section.78.string	"<BYLINE>"
+doc.pp_section.78.action	discard
+doc.pp_section.78.oneline_flag	true
+doc.pp_section.79.string	"<AUTHOR>"
+doc.pp_section.79.action	discard
+doc.pp_section.79.oneline_flag	true
+doc.pp_section.80.string	"<AU>"
+doc.pp_section.80.action	discard
+doc.pp_section.80.oneline_flag	true
+doc.pp_section.81.string	"<AN>"
+doc.pp_section.81.action	discard
+doc.pp_section.81.oneline_flag	true
+doc.pp_section.82.string	"<ACCESSION>"
+doc.pp_section.82.action	discard
+doc.pp_section.82.oneline_flag	true
+doc.pp_section.83.string	"<ACCESS>"
+doc.pp_section.83.action	discard
+doc.pp_section.83.oneline_flag	true
+doc.pp_section.84.string	"&gt;In article"
+doc.pp_section.84.action	discard
+doc.pp_section.84.oneline_flag	true
+doc.pp_section.85.string	"&gt; In article"
+doc.pp_section.85.action	discard
+doc.pp_section.85.oneline_flag	true
+
+# Additions for t6.
+doc.pp_section.86.string	"<LENGTH>"
+doc.pp_section.86.action	discard
+doc.pp_section.86.oneline_flag	true
+doc.pp_section.87.string	"<TYPE>"
+doc.pp_section.87.action	discard
+doc.pp_section.87.oneline_flag	true
+# oneline_flag not set to true for the following, since
+# for the LATimes, SUBJECT always occurs as the last thing
+# in a document.
+doc.pp_section.88.string	"<SUBJECT>"
+doc.pp_section.88.action	discard
+doc.pp_section.89.string	"<CORRECTION>"
+doc.pp_section.89.section_name	"w"
+doc.pp_section.89.action	copy
+doc.pp_section.90.string	"<CORRECTION-DATE>"
+doc.pp_section.90.action	discard
+doc.pp_section.90.oneline_flag	true
+doc.pp_section.91.string	"<GRAPHIC>"
+doc.pp_section.91.action	discard
+doc.pp_section.91.oneline_flag	true
+doc.pp_section.92.string	"<HEADER>"
+doc.pp_section.92.action	discard
+doc.pp_section.92.oneline_flag	true
+doc.pp_section.93.string	"<TR>"
+doc.pp_section.93.action	discard
+doc.pp_section.93.oneline_flag	true
+doc.pp_section.94.string	"<TXT5>"
+doc.pp_section.94.section_name	"w"
+doc.pp_section.94.action	copy
+doc.pp_section.95.string	"<FIG>"
+doc.pp_section.95.action	discard
+doc.pp_section.95.oneline_flag	true
+doc.pp_section.96.string	"<PHRASE>"
+doc.pp_section.96.section_name	"t"
+doc.pp_section.96.action	copy
+doc.pp_section.97.string	"<TI>"
+doc.pp_section.97.section_name	"t"
+doc.pp_section.97.action	copy
+doc.pp_section.98.string	"<ABS>"
+doc.pp_section.98.action	discard
+doc.pp_section.98.oneline_flag	true
+doc.pp_section.99.string	"<DATE1>"
+doc.pp_section.99.action	discard
+doc.pp_section.99.oneline_flag	true
+doc.pp_section.100.string	""
+doc.pp_section.100.action	copy
+doc.pp_section.100.oneline_flag	true
+doc.pp.default_section_name	w
+doc.pp.default_section_action	copy
+doc.num_pp_sections		101
+
+query.pp_section.0.string	"<top>"
+query.pp_section.0.action	discard
+query.pp_section.0.newdoc_flag	true
+query.pp_section.1.string	"<title> Topic:"
+query.pp_section.1.section_name	"t"
+query.pp_section.1.action	copy
+query.pp_section.2.string	"<time>"
+query.pp_section.2.action	discard
+query.pp_section.3.string	"<smry> Summary:"
+query.pp_section.3.action	discard
+query.pp_section.4.string	"<num>"
+query.pp_section.4.section_name	"n"
+query.pp_section.4.action	copy
+query.pp_section.5.string	"<nat> Nationality:"
+query.pp_section.5.section_name	"w"
+query.pp_section.5.action	copy
+query.pp_section.6.string	"<narr> Narrative:"
+query.pp_section.6.section_name	"w"
+query.pp_section.6.action	copy
+query.pp_section.7.string	"<head>"
+query.pp_section.7.action	discard
+query.pp_section.8.string	"<fac> Factor(s):"
+query.pp_section.8.section_name	"w"
+query.pp_section.8.action	copy
+query.pp_section.9.string	"<dom>"
+query.pp_section.9.action	discard
+query.pp_section.10.string	"<desc> Description:"
+query.pp_section.10.section_name	"t"
+query.pp_section.10.action	copy
+query.pp_section.11.string	"<def> Definition(s):"
+query.pp_section.11.action	discard
+query.pp_section.12.string	"<con> Concept(s):"
+query.pp_section.12.section_name	"w"
+query.pp_section.12.action	copy
+query.pp_section.13.string	"</top>"
+query.pp_section.13.action	discard
+query.pp_section.14.string	"</fac>"
+query.pp_section.14.action	discard
+query.pp_section.15.string	"<title> "
+query.pp_section.15.section_name	"t"
+query.pp_section.15.action	copy
+query.pp_section.16.string	""
+query.pp_section.16.action	copy
+query.pp_section.16.oneline_flag	true
+query.pp.default_section_name	w
+query.pp.default_section_action	copy
+query.num_pp_sections		17
+
+
+## TREC DOCDESC
+num_sections 			6
+num_ctypes              	2
+ctype.0.name            	words
+ctype.1.name            	phrase
+phrase.stemmer			index.stem.stem_phrase
+phrase.stopword			index.stop.none
+phrase.stem_wanted		1
+phrase.stopword_wanted		0
+phrase.token_to_con     	index.token_to_con.dict_cont
+
+index.section.0.name 		i
+index.section.1.name 		t
+        index.section.1.method 	index.parse_sect.phrase
+        index.section.1.word.ctype 0
+        index.section.1.proper.ctype 0
+        index.section.1.phrase.ctype 1
+index.section.2.name w
+        index.section.2.method 	index.parse_sect.phrase
+        index.section.2.word.ctype 0
+        index.section.2.proper.ctype 0
+        index.section.2.phrase.ctype 1
+index.section.3.name s
+        index.section.3.method 	index.parse_sect.phrase
+        index.section.3.word.ctype 0
+        index.section.3.proper.ctype 0
+        index.section.3.phrase.ctype 1
+index.section.4.name n
+index.section.5.name o
+
+title_section 1
+

@@ -69,5 +69,4 @@ EOL
 fi
 # .properties file created in 'build/classes' 
 
-java trecdata.CollectionIndexer $prop_name
-
+java -cp $CLASSPATH:./lib/Common.jar:./lib/jsoup-1.7.3.jar:./lib/lucene-analyzers-common-4.10.4-SNAPSHOT.jar:./lib/lucene-core-4.10.4-SNAPSHOT.jar:./lib/lucene-queries-4.10.4-SNAPSHOT.jar:./lib/lucene-queryparser-4.10.4-SNAPSHOT.jar:./lib/sax2r2.jar trecdata.CollectionIndexer $prop_name

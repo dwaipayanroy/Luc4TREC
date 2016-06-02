@@ -52,7 +52,7 @@ public class GetAllDocIds {
             int maxDoc = reader.maxDoc();
             for (int i = 0; i < maxDoc; i++) {
                 Document d = reader.document(i);
-//                System.out.println(d.get(TrecCommonVariables.FIELD_ID));
+//                System.out.println(d.get(CommonVariables.FIELD_ID));
                 bufferWritter.write(d.get(CommonVariables.FIELD_ID)+"\n");
             }
         }

@@ -4,7 +4,6 @@
  */
 package trecdata;
 
-import common.CollectionStatistics;
 import common.TRECQuery;
 import common.TRECQueryParser;
 import java.io.File;
@@ -56,8 +55,6 @@ public class CollectionSearcher {
     TRECQueryParser trecQueryparser;
     int             simFuncChoice;
     float           param1, param2;
-
-    CollectionStatistics    collStat;
 
     public CollectionSearcher(String propPath) throws IOException, Exception {
 
@@ -150,7 +147,13 @@ public class CollectionSearcher {
 
         runName = queryFile.getName()+searcher.getSimilarity().
             toString().replace(" ", "-").replace("(", "").replace(")", "");
-        resPath = "/home/dwaipayan/"+runName + ".res";
+        if(null == prop.getProperty("resPath"))
+            resPath = "/home/dwaipayan/";
+        else
+            resPath = prop.getProperty("resPath");
+        if(!resPath.endsWith("/"))
+            resPath = resPath+"/";
+        resPath = resPath+runName;
         System.out.println("Result will be stored in: "+resPath);
     }
 

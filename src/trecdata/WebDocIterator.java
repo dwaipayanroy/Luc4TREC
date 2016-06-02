@@ -1,6 +1,7 @@
 /**
  * Drops content of <DOCNO>, <DOCHDR>; 
- * Indexes other content, dropping all HTML-like tags and removing URLs; <p>
+ * Index contents, dropping all HTML-like tags and removing URLs; <p>
+ * Removes ':', '_'
  * Tested for WT2G and GOV2 Collection.
  */
 
@@ -27,7 +28,8 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
 import static common.CommonVariables.FIELD_BOW;
 import static common.CommonVariables.FIELD_ID;
-/*import org.apache.lucene.document.TextField;*/
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -39,7 +41,7 @@ public class WebDocIterator implements Iterator<Document> {
 	protected boolean at_eof = false;
         Analyzer    analyzer;
         String      toStore;            // YES / NO; to be read from prop file; default is 'NO'
-        String      storetermVector;         // NO / YES / WITH_POSITIONS / WITH_OFFSETS / WITH_POSITIONS_OFFSETS; to be read from prop file; default - YES
+        String      storetermVector;    // NO / YES / WITH_POSITIONS / WITH_OFFSETS / WITH_POSITIONS_OFFSETS; to be read from prop file; default - YES
         String      dumpPath;
         Properties  prop;
 
@@ -78,7 +80,6 @@ public class WebDocIterator implements Iterator<Document> {
          * @return 
          */
         public String removeHTMLTags(String str) {
-//            String tagPatternStr = "<\\p{Punct}*\\s*[a-zA-Z0-9 ]*\\s*\\p{Punct}*[^>]>";
             String tagPatternStr = "<[^>\\n]*[>\\n]";
             Pattern tagPattern = Pattern.compile(tagPatternStr);
 
@@ -108,11 +109,19 @@ public class WebDocIterator implements Iterator<Document> {
             Document doc = new Document();
             StringBuffer sb = new StringBuffer();
 
+            // +++ For replacing characters- ':','_'
+            Map<String, String> replacements = new HashMap<String, String>() {{
+                put(":", " ");
+                put("_", " ");
+            }};
+            // create the pattern joining the keys with '|'
+            String regExp = ":|_";
+            Pattern p = Pattern.compile(regExp);
+            // --- For replacing characters- ':','_'
+
             try {
                 String line;
                 boolean in_doc = false;
-                boolean in_content = false;
-                int in_content_tag = 0;
                 String doc_no = null;
 
                 while (true) {
@@ -176,6 +185,18 @@ public class WebDocIterator implements Iterator<Document> {
                     String txt = removeHTMLTags(sb.toString()); // remove all html-like tags (e.g. <xyz>)
                     txt = removeURL(txt);
 
+                    // +++ For replacing characters- ':','_'
+                    StringBuffer temp = new StringBuffer();
+                    Matcher m = p.matcher(txt);
+                    while (m.find()) {
+                        String value = replacements.get(m.group(0));
+                        if(value != null)
+                            m.appendReplacement(temp, value);
+                    }
+                    m.appendTail(temp);
+                    txt = temp.toString();
+                    // --- For replacing characters- ':','_'
+
                     StringBuffer tokenizedContentBuff = new StringBuffer();
 
                     TokenStream stream = analyzer.tokenStream(FIELD_BOW, 
@@ -185,7 +206,6 @@ public class WebDocIterator implements Iterator<Document> {
 
                     while (stream.incrementToken()) {
                         String term = termAtt.toString();
-                        term = term.replaceAll(":", " ");
                         if(!term.equals("nbsp"))
                             tokenizedContentBuff.append(term).append(" ");
                     }
@@ -221,8 +241,6 @@ public class WebDocIterator implements Iterator<Document> {
             try {
                 String line;
                 boolean in_doc = false;
-                boolean in_content = false;
-                int in_content_tag = 0;
                 String doc_no = null;
 
                 while (true) {

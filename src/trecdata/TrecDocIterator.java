@@ -1,7 +1,7 @@
 /**
- * Index TREC document collections with tags as specified in:
- *      <a href="resources/trec-toRead-tags">tag-list</a> <p>
- * Tested for TREC1-8.
+ * Index TREC document collections dropping all the HTML tags and URLs
+ * Removes ':', '_'
+ * Tested for TREC Disk 1-5.
  */
 
 package trecdata;
@@ -27,6 +27,8 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
 import static common.CommonVariables.FIELD_BOW;
 import static common.CommonVariables.FIELD_ID;
+import java.util.HashMap;
+import java.util.Map;
 /*import org.apache.lucene.document.TextField;*/
 
 /**
@@ -44,7 +46,6 @@ public class TrecDocIterator implements Iterator<Document> {
 
 	public TrecDocIterator(File file) throws FileNotFoundException {
             rdr = new BufferedReader(new FileReader(file));
-//            System.out.println("Reading " + file.toString());
 	}
 
 	public TrecDocIterator(File file, CommandLineIndexing obj) throws FileNotFoundException, IOException {
@@ -77,7 +78,6 @@ public class TrecDocIterator implements Iterator<Document> {
          * @return 
          */
         public String removeHTMLTags(String str) {
-//            String tagPatternStr = "<\\p{Punct}*\\s*[a-zA-Z0-9 ]*\\s*\\p{Punct}*[^>]>";
             String tagPatternStr = "<[^>\\n]*[>\\n]";
             Pattern tagPattern = Pattern.compile(tagPatternStr);
 
@@ -98,19 +98,31 @@ public class TrecDocIterator implements Iterator<Document> {
             return m.replaceAll(" ");
         }
 
+        /**
+         * Returns the next document in the collection, setting FIELD_ID and FIELD_BOW.
+         * @return 
+         */
 	@Override
 	public Document next() {
             Document doc = new Document();
             StringBuffer sb = new StringBuffer();
 
+            // +++ For replacing characters- ':','_'
+            Map<String, String> replacements = new HashMap<String, String>() {{
+                put(":", " ");
+                put("_", " ");
+            }};
+            // create the pattern joining the keys with '|'
+            String regExp = ":|_";
+            Pattern p = Pattern.compile(regExp);
+            // --- For replacing characters- ':','_'
+
             try {
                 String line;
                 boolean in_doc = false;
-                boolean in_content = false;
-                int in_content_tag = 0;
                 String doc_no = null;
 
-                do {
+                while (true) {
                     line = rdr.readLine();
 
                     if (line == null) {
@@ -127,13 +139,12 @@ public class TrecDocIterator implements Iterator<Document> {
                         else
                             continue;
                     }
-                    if (line.endsWith("</DOC>")) {
+                    if (line.contains("</DOC>")) {
                         in_doc = false;
                         sb.append(line);
                         break;
                     }
                     // </DOC>
-
 
                     // <DOCNO>
                     if(line.startsWith("<DOCNO>")) {
@@ -148,238 +159,26 @@ public class TrecDocIterator implements Iterator<Document> {
                     }
                     // </DOCNO>
 
-                    // <content-tag>
-//                    Pattern content_tag = Pattern.compile("<[a-zA-Z]+>");
-                    Pattern content_tag = Pattern.compile("(?m)\\s*<[a-zA-Z]+>\\s*(.*)</", Pattern.DOTALL);
-                    Matcher m = content_tag.matcher(line);
-                    if (m.find()) {
-                        if (line.contains("<TTL>")){
-                            in_content = true;
-                            in_content_tag++;
-                            sb.append(line);
-                            sb.append(" ");
-                        }
-                        if (line.contains("<TITLE>")){
-                            in_content = true;
-                            in_content_tag++;
-                            sb.append(line);
-                            sb.append(" ");
-                        }
-                        if (line.contains("<TEXT>")){
-                            in_content = true;
-                            in_content_tag++;
-                            sb.append(line);
-                            sb.append(" ");
-                        }
-                        if (line.contains("<SUMMARY>")){
-                            in_content = true;
-                            in_content_tag++;
-                            sb.append(line);
-                            sb.append(" ");
-                        }
-                        if (line.contains("<SPECS>")){
-                            in_content = true;
-                            in_content_tag++;
-                            sb.append(line);
-                            sb.append(" ");
-                        }
-                        if (line.contains("<HEADLINE>")){
-                            in_content = true;
-                            in_content_tag++;
-                            sb.append(line);
-                            sb.append(" ");
-                        }
-                        if (line.contains("<LP>")){
-                            in_content = true;
-                            in_content_tag++;
-                            sb.append(line);
-                            sb.append(" ");
-                        }
-                        if (line.contains("<LEADPARA>")){
-                            in_content = true;
-                            in_content_tag++;
-                            sb.append(line);
-                            sb.append(" ");
-                        }
-                        if (line.contains("<HL>")){
-                            in_content = true;
-                            in_content_tag++;
-                            sb.append(line);
-                            sb.append(" ");
-                        }
-                        if (line.contains("<HEADLINE>")){
-                            in_content = true;
-                            in_content_tag++;
-                            sb.append(line);
-                            sb.append(" ");
-                        }
-                        if (line.contains("<HEAD>")){
-                            in_content = true;
-                            in_content_tag++;
-                            sb.append(line);
-                            sb.append(" ");
-                        }
-                        if (line.contains("<H3>")){
-                            in_content = true;
-                            in_content_tag++;
-                            sb.append(line);
-                            sb.append(" ");
-                        }
-                        if (line.contains("<CATEGORY>")){
-                            in_content = true;
-                            in_content_tag++;
-                            sb.append(line);
-                            sb.append(" ");
-                        }
-                        if (line.contains("<CAPTION>")){
-                            in_content = true;
-                            in_content_tag++;
-                            sb.append(line);
-                            sb.append(" ");
-                        }
-                        if (line.contains("<CORRECTION>")){
-                            in_content = true;
-                            in_content_tag++;
-                            sb.append(line);
-                            sb.append(" ");
-                        }
-                        if (line.contains("<TXT5>")){
-                            in_content = true;
-                            in_content_tag++;
-                            sb.append(line);
-                            sb.append(" ");
-                        }
-                        if (line.contains("<PHRASE>")){
-                            in_content = true;
-                            in_content_tag++;
-                            sb.append(line);
-                            sb.append(" ");
-                        }
-                        if (line.contains("<TI>")){
-                            in_content = true;
-                            in_content_tag++;
-                            sb.append(line);
-                            sb.append(" ");
-                        }
-                        if (line.startsWith("<TEXT")){
-                            in_content = true;
-                            in_content_tag++;
-                            sb.append(line);
-                            sb.append(" ");
-                        }
-                        else{
-                            //useless tag; continue reading next line
-                            continue;
-                        }
-                    }
-
-                    else {      // line is not starting with a <tag>
-                    // Appending the content in the buffer
-                        if(in_content) {
-                            sb.append(line);
-                            sb.append(" ");
-                        }
-                    }
-
-                    
-                    if (line.contains("</TTL>")){
-                        in_content_tag--;
-                        if (in_content_tag <= 0)
-                            in_content = false;
-                    }
-                    if (line.contains("</TITLE>")){
-                        in_content_tag--;
-                        if (in_content_tag <= 0)
-                            in_content = false;
-                    }
-                    if (line.contains("</TEXT>")){
-                        in_content_tag--;
-                        if (in_content_tag <= 0)
-                            in_content = false;
-                    }
-                    if (line.contains("</SUMMARY>")){
-                        in_content_tag--;
-                        if (in_content_tag <= 0)
-                            in_content = false;
-                    }
-                    if (line.contains("</SPECS>")){
-                        in_content_tag--;
-                        if (in_content_tag <= 0)
-                            in_content = false;
-                    }
-                    if (line.contains("</HEADLINE>")){
-                        in_content_tag--;
-                        if (in_content_tag <= 0)
-                            in_content = false;
-                    }
-                    if (line.contains("</LP>")){
-                        in_content_tag--;
-                        if (in_content_tag <= 0)
-                            in_content = false;
-                    }
-                    if (line.contains("</LEADPARA>")){
-                        in_content_tag--;
-                        if (in_content_tag <= 0)
-                            in_content = false;
-                    }
-                    if (line.contains("</HL>")){
-                        in_content_tag--;
-                        if (in_content_tag <= 0)
-                            in_content = false;
-                    }
-                    if (line.contains("</HEADLINE>")){
-                        in_content_tag--;
-                        if (in_content_tag <= 0)
-                            in_content = false;
-                    }
-                    if (line.contains("</HEAD>")){
-                        in_content_tag--;
-                        if (in_content_tag <= 0)
-                            in_content = false;
-                    }
-                    if (line.contains("</H3>")){
-                        in_content_tag--;
-                        if (in_content_tag <= 0)
-                            in_content = false;
-                    }
-                    if (line.contains("</CATEGORY>")){
-                        in_content_tag--;
-                        if (in_content_tag <= 0)
-                            in_content = false;
-                    }
-                    if (line.contains("</CAPTION>")){
-                        in_content_tag--;
-                        if (in_content_tag <= 0)
-                            in_content = false;
-                    }
-                    if (line.contains("</CORRECTION>")){
-                        in_content_tag--;
-                        if (in_content_tag <= 0)
-                            in_content = false;
-                    }
-                    if (line.contains("</TXT5>")){
-                        in_content_tag--;
-                        if (in_content_tag <= 0)
-                            in_content = false;
-                    }
-                    if (line.contains("</PHRASE>")){
-                        in_content_tag--;
-                        if (in_content_tag <= 0)
-                            in_content = false;
-                    }
-                    if (line.contains("</TI>")){
-                        in_content_tag--;
-                        if (in_content_tag <= 0)
-                            in_content = false;
-                    }
-                    // </content-tag>
-
-                } while(in_doc);
+                    sb.append(line);
+                    sb.append(" ");
+                }
 
                 if (sb.length() > 0) {
                     //doc.add(new TextField(CommandLineIndexing.FIELD_BOW, sb.toString(), Field.Store.YES));
-                    String txt = removeHTMLTags(sb.toString()); // remove all html tags
+                    String txt = removeHTMLTags(sb.toString()); // remove all html-like tags (e.g. <xyz>)
                     txt = removeURL(txt);
+
+                    // +++ For replacing characters- ':','_'
+                    StringBuffer temp = new StringBuffer();
+                    Matcher m = p.matcher(txt);
+                    while (m.find()) {
+                        String value = replacements.get(m.group(0));
+                        if(value != null)
+                            m.appendReplacement(temp, value);
+                    }
+                    m.appendTail(temp);
+                    txt = temp.toString();
+                    // --- For replacing characters- ':','_'
 
                     StringBuffer tokenizedContentBuff = new StringBuffer();
 
@@ -396,13 +195,11 @@ public class TrecDocIterator implements Iterator<Document> {
                     stream.end();
                     stream.close();
 
-                    String toIndex = tokenizedContentBuff.toString().
-                        replaceAll(":", " ");
-                    doc.add(new Field(FIELD_BOW, tokenizedContentBuff.toString(), 
+                    String toIndex = tokenizedContentBuff.toString();
+                    doc.add(new Field(FIELD_BOW, toIndex, 
                         Field.Store.valueOf(toStore), Field.Index.ANALYZED, Field.TermVector.YES));
 
                     if(null != dumpPath) {
-//                    if(prop.containsKey("dumpPath")) {
                         FileWriter fw = new FileWriter(dumpPath, true);
                         BufferedWriter bw = new BufferedWriter(fw);
                         bw.write(toIndex+"\n");
@@ -423,16 +220,32 @@ public class TrecDocIterator implements Iterator<Document> {
             Document doc = new Document();
             StringBuffer sb = new StringBuffer();
 
+            // +++ For replacing characters- ':','_'
+            Map<String, String> replacements = new HashMap<String, String>() {{
+                put(":", " ");
+                put("_", " ");
+            }};
+            // create the pattern joining the keys with '|'
+            String regExp = ":|_";
+            Pattern p = Pattern.compile(regExp);
+            // --- For replacing characters- ':','_'
+
             try {
                 String line;
-                Pattern docno_tag = Pattern.compile("<DOCNO>\\s*(\\S+)\\s*<");
                 boolean in_doc = false;
+                String doc_no = null;
+
                 while (true) {
                     line = rdr.readLine();
+
                     if (line == null) {
                         at_eof = true;
                         break;
                     }
+                    else
+                        line = line.trim();
+
+                    // <DOC>
                     if (!in_doc) {
                         if (line.startsWith("<DOC>"))
                             in_doc = true;
@@ -444,19 +257,39 @@ public class TrecDocIterator implements Iterator<Document> {
                         sb.append(line);
                         break;
                     }
+                    // </DOC>
 
-                    Matcher m = docno_tag.matcher(line);
-                    if (m.find()) {
-                        String docno = m.group(1);
+                    // <DOCNO>
+                    if(line.startsWith("<DOCNO>")) {
+                        doc_no = line;
+                        while(!line.endsWith("</DOCNO>")) {
+                            line = rdr.readLine().trim();
+                            doc_no = doc_no + line;
+                        }
+                        doc_no = doc_no.replace("<DOCNO>", "").replace("</DOCNO>", "").trim();
+                        doc.add(new StringField(FIELD_ID, doc_no, Field.Store.YES));
+                        continue;   // start reading the next line
                     }
-                    else {
-                        sb.append(" ");
-                        sb.append(line);
-                    }
+                    // </DOCNO>
+
+                    sb.append(" ");
+                    sb.append(line);
                 }
                 if (sb.length() > 0) {
                     String txt = removeHTMLTags(sb.toString()); // remove all html tags
                     txt = removeURL(txt);
+
+                    // +++ For replacing characters- ':','_'
+                    StringBuffer temp = new StringBuffer();
+                    Matcher m = p.matcher(txt);
+                    while (m.find()) {
+                        String value = replacements.get(m.group(0));
+                        if(value != null)
+                            m.appendReplacement(temp, value);
+                    }
+                    m.appendTail(temp);
+                    txt = temp.toString();
+                    // --- For replacing characters- ':','_'
 
                     StringBuffer tokenizedContentBuff = new StringBuffer();
 

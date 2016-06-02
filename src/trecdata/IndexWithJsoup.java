@@ -236,7 +236,7 @@ public class IndexWithJsoup {
         // Storing the content in the index with field-name FIELD_BOW;
         // with termvector; analyzed with WhiteSpaceTokenizer
         doc.add(new Field(FIELD_BOW, txt,
-                Field.Store.NO, Field.Index.ANALYZED, Field.TermVector.YES));
+                Field.Store.YES, Field.Index.ANALYZED, Field.TermVector.YES));
         /* FIELD_BOW: analyzed, bow content is added */
 
         return doc;
@@ -261,7 +261,7 @@ public class IndexWithJsoup {
             Element docIdElt = docElt.select("DOCNO").first();
             System.out.println((docIndexedCounter+1)+": Indexing: "+docIdElt.text());
             doc = constructDoc(docIdElt.text(), docElt.text());
-            System.out.println(docElt.text());
+            //System.out.println(docElt.text());
             indexWriter.addDocument(doc);
             docIndexedCounter++;
         }

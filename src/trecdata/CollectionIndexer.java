@@ -315,7 +315,9 @@ public class CollectionIndexer {
         //*/
         if(args.length == 0) {
             System.out.println(usage);
-            System.exit(1);
+            args = new String[1];
+            args[0] = "/home/dwaipayan/Dropbox/programs/TrecDatahandling/TrecData/build/classes/trec-sample.index.properties";
+//            System.exit(1);
         }
 
         collIndexer = new CollectionIndexer(args[0]);

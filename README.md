@@ -1,1 +1,1 @@
-# Luc4TREC: Luecne for TREC Collection 
+# Luc4TREC: Lucene for TREC Collection 

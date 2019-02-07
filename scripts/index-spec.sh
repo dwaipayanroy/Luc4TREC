@@ -16,10 +16,10 @@ fi
 
 ### toStore
 # - YES: store the raw content
-# - analyzed: store the analyzed content
+# - analyzed: store the analyzed content (NEED TO <uncomment> in DocumentProcessor.java)
 # - NO: do not store the content. doc.get() will return null
 toStore="YES" # YES/analyzed/NO
-storeTermVector="YES"
+storeTermVector="NO"
 echo "Storing the content in index: "$toStore
 echo "Storing the term-vectors: "$storeTermVector
 
@@ -32,7 +32,7 @@ then
     exit 1;
 fi
 
-prop_name="build/classes/webdoc-indexer.properties"
+prop_name="build/classes/newsdoc-indexer.properties"
 spec_path=`readlink -f $1`		# absolute address of the .properties file
 
 if [ ! -f $spec_path ]

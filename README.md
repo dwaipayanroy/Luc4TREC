@@ -1,1 +1,1 @@
-# TREC Collection Indexer and Retriever
+# Luc4TREC: Luecne for TREC Collection 

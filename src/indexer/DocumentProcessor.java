@@ -231,38 +231,29 @@ public class DocumentProcessor {
         String fullText = rawDocSb.toString();
         fullText = refineSpecialChars(fullText);
         String fullContent = analyzeText(analyzer, fullText, FIELD_FULL_BOW).toString();
+
+        /*
         // Field: FIELD_FULL_BOW
         // Full analyzed content (with tags, urls). 
         // Will be used for baseline retrieval.
         doc.add(new Field(FIELD_FULL_BOW, fullContent, 
             Field.Store.valueOf(toStore), Field.Index.ANALYZED, Field.TermVector.valueOf(storeTermVector)));
+        */
 
-        // if to index the clean content:
-        {
-            cleanContent = rawDocSb.toString();
-            org.jsoup.nodes.Document jsoupDoc;
-            jsoupDoc = org.jsoup.Jsoup.parse(cleanContent, "UTF-8");
+        cleanContent = rawDocSb.toString();
+        org.jsoup.nodes.Document jsoupDoc;
+        jsoupDoc = org.jsoup.Jsoup.parse(cleanContent, "UTF-8");
 
-            // metaContent = getTagMetaContent(cleanText);
-            cleanContent = jsoupDoc.text();
+        // metaContent = getTagMetaContent(cleanText);
+        cleanContent = jsoupDoc.text();
 
-            cleanContent = analyzeText(analyzer, cleanContent, FIELD_BOW).toString();
+        cleanContent = analyzeText(analyzer, cleanContent, FIELD_BOW).toString();
 
-            // Field: FIELD_BOW
-            // Clean analyzed content (without tag, urls).
-            // Will be used for Relevance Feedback.
-            doc.add(new Field(FIELD_BOW, cleanContent, 
-                Field.Store.valueOf(toStore), Field.Index.ANALYZED, Field.TermVector.valueOf(storeTermVector)));
-
-            // TODO: Uncomment, to index the meta content that are removed due to noise removal
-            /*
-            // Field: FIELD_META
-            // the noises that were removed from full to get the clean content
-            String analyzedMetaText = analyzeText(analyzer, metaContent, FIELD_META).toString();
-            doc.add(new Field(FIELD_META, analyzedMetaText, 
-                Field.Store.valueOf(toStore), Field.Index.ANALYZED, Field.TermVector.valueOf(storeTermVector)));
-            //*/
-        }
+        // Field: FIELD_BOW
+        // Clean analyzed content (without tag, urls).
+        // Will be used for Relevance Feedback.
+        doc.add(new Field(FIELD_BOW, cleanContent, 
+            Field.Store.valueOf(toStore), Field.Index.ANALYZED, Field.TermVector.valueOf(storeTermVector)));
 
         return doc;
     } // ends processDocumentUsingJSoup()

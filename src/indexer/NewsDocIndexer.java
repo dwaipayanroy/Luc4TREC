@@ -277,9 +277,9 @@ public class NewsDocIndexer {
             + "WITH_POSITIONS/WITH_OFFSETS/WITH_POSITIONS_OFFSETS";
 
         // for debuging purpose
-        /*
+//        /*
         args = new String[1];
-        args[0] = "build/classes/webdoc-indexer.properties";
+        args[0] = "/home/dwaipayan/Desktop/Luc4TREC/build/classes/newsdoc-indexer.properties";
         //*/
         if(args.length == 0) {
             System.out.println(usage);

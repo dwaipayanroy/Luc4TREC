@@ -217,6 +217,9 @@ public class DocumentProcessor {
 
     /**
      * Analyze the documents using JSoup
+     * Making two fields:
+     *  1. FIELD_ID  : The TREC-ID of the document.
+     *  2. FIELD_BOW : Clean analyzed content (without tag, urls).
      * @return
      * @throws IOException 
      */
@@ -235,7 +238,7 @@ public class DocumentProcessor {
         /*
         // Field: FIELD_FULL_BOW
         // Full analyzed content (with tags, urls). 
-        // Will be used for baseline retrieval.
+        // NOT INDEXING.
         doc.add(new Field(FIELD_FULL_BOW, fullContent, 
             Field.Store.valueOf(toStore), Field.Index.ANALYZED, Field.TermVector.valueOf(storeTermVector)));
         */
@@ -251,7 +254,6 @@ public class DocumentProcessor {
 
         // Field: FIELD_BOW
         // Clean analyzed content (without tag, urls).
-        // Will be used for Relevance Feedback.
         doc.add(new Field(FIELD_BOW, cleanContent, 
             Field.Store.valueOf(toStore), Field.Index.ANALYZED, Field.TermVector.valueOf(storeTermVector)));
 

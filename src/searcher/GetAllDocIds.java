@@ -1,7 +1,7 @@
 
 package searcher;
 
-import common.CommonVariables;
+import common.trec.DocField;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -51,8 +51,8 @@ public class GetAllDocIds {
             int maxDoc = reader.maxDoc();
             for (int i = 0; i < maxDoc; i++) {
                 Document d = reader.document(i);
-//                System.out.println(d.get(CommonVariables.FIELD_ID));
-                bufferWritter.write(d.get(CommonVariables.FIELD_ID)+"\n");
+//                System.out.println(d.get(DocField.FIELD_ID));
+                bufferWritter.write(d.get(DocField.FIELD_ID)+"\n");
             }
         }
         catch(Exception e) {

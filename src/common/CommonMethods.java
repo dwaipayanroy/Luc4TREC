@@ -21,30 +21,15 @@ import org.apache.lucene.search.ScoreDoc;
 public class CommonMethods {
 
     /**
-     * Returns a string-buffer in the TREC-res format for the passed queryId
-     * @param queryId
-     * @param hits
-     * @param searcher
-     * @param runName
-     * @return
-     * @throws IOException 
+     * 
+     * @param str
+     * @return 
      */
-    static final public StringBuffer writeTrecResFileFormat(String queryId, ScoreDoc[] hits, 
-        IndexSearcher searcher, String runName) throws IOException {
-
-        StringBuffer resBuffer = new StringBuffer();
-        int hits_length = hits.length;
-        for (int i = 0; i < hits_length; ++i) {
-            int luceneDocId = hits[i].doc;
-            Document d = searcher.doc(luceneDocId);
-            resBuffer.append(queryId).append("\tQ0\t").
-                append(d.get("docid")).append("\t").
-                append((i)).append("\t").
-                append(hits[i].score).append("\t").
-                append(runName).append("\n");                
-        }
-
-        return resBuffer;
+    public static String removeSpecialCharacters(String str) {
+        return str.replaceAll("-", " ").replaceAll("/", " ")
+                .replaceAll("\\?", " ").replaceAll("\"", " ")
+                .replaceAll("\\&", " ").replaceAll(":", " ")
+                .replaceAll("_"," ");
     }
 
     /**
@@ -57,71 +42,11 @@ public class CommonMethods {
      */
     public static StringBuffer analyzeText(Analyzer analyzer, String text, String fieldName) throws IOException {
 
-        // +++ For replacing characters- ':','_'
-        Map<String, String> replacements = new HashMap<String, String>() {{
-            put(":", " ");
-            put("_", " ");
-        }};
-        // create the pattern joining the keys with '|'
-        String regExp = ":|_";
-        Pattern p = Pattern.compile(regExp);
-        // --- For replacing characters- ':','_'
+        StringBuffer tokenizedContentBuff = new StringBuffer();
 
-        StringBuffer temp;
-        Matcher m;
-        StringBuffer tokenizedContentBuff;
-        TokenStream stream;
-        CharTermAttribute termAtt;
+        TokenStream stream = analyzer.tokenStream(fieldName, new StringReader(text));
+        CharTermAttribute termAtt = stream.addAttribute(CharTermAttribute.class);
 
-        // +++ For replacing characters- ':','_'
-        temp = new StringBuffer();
-        m = p.matcher(text);
-        while (m.find()) {
-            String value = replacements.get(m.group(0));
-            if(value != null)
-                m.appendReplacement(temp, value);
-        }
-        m.appendTail(temp);
-        text = temp.toString();
-        // --- For replacing characters- ':','_'
-
-        tokenizedContentBuff = new StringBuffer();
-
-        stream = analyzer.tokenStream(fieldName, new StringReader(text));
-        termAtt = stream.addAttribute(CharTermAttribute.class);
-        stream.reset();
-
-        while (stream.incrementToken()) {
-            String term = termAtt.toString();
-            if(!term.equals("nbsp") && !term.equals("amp"))
-                tokenizedContentBuff.append(term).append(" ");
-        }
-
-        stream.end();
-        stream.close();
-
-        return tokenizedContentBuff;
-    }
-
-    /**
-     * Analyzes 'text', using 'analyzer', to be stored in a  dummy field.
-     * @param analyzer
-     * @param text
-     * @return
-     * @throws IOException 
-     */
-    public static StringBuffer analyzeText(Analyzer analyzer, String text) throws IOException {
-
-        StringBuffer temp;
-        Matcher m;
-        StringBuffer tokenizedContentBuff;
-        TokenStream stream;
-        CharTermAttribute termAtt;
-
-        tokenizedContentBuff = new StringBuffer();
-
-        stream = analyzer.tokenStream("dummy_field", new StringReader(text));
-        termAtt = stream.addAttribute(CharTermAttribute.class);
         stream.reset();
 
         while (stream.incrementToken()) {
@@ -135,6 +60,18 @@ public class CommonMethods {
         return tokenizedContentBuff;
     }
 
+    /**
+     * Analyzes 'text', using 'analyzer', to be stored in a dummy field.
+     * @param analyzer
+     * @param text
+     * @return
+     * @throws IOException 
+     */
+    public static StringBuffer analyzeText(Analyzer analyzer, String text) throws IOException {
+
+        return analyzeText(analyzer, text, null);
+    }
+
     static boolean isNumeric(String term) {
         int len = term.length();
         for (int i = 0; i < len; i++) {
@@ -146,7 +83,7 @@ public class CommonMethods {
     }
 
     /**
-     * Analyzes 'text', using 'analyzer', to be stored in a  dummy field.
+     * Analyzes 'text', using 'analyzer', to be stored in a dummy null field.
      * @param analyzer
      * @param text
      * @return
@@ -154,16 +91,11 @@ public class CommonMethods {
      */
     public static StringBuffer analyzeTextRemoveNum(Analyzer analyzer, String text) throws IOException {
 
-        StringBuffer temp;
-        Matcher m;
-        StringBuffer tokenizedContentBuff;
-        TokenStream stream;
-        CharTermAttribute termAtt;
+        StringBuffer tokenizedContentBuff = new StringBuffer();
 
-        tokenizedContentBuff = new StringBuffer();
+        TokenStream stream = analyzer.tokenStream(null, new StringReader(text));
+        CharTermAttribute termAtt = stream.addAttribute(CharTermAttribute.class);
 
-        stream = analyzer.tokenStream("dummy_field", new StringReader(text));
-        termAtt = stream.addAttribute(CharTermAttribute.class);
         stream.reset();
 
         while (stream.incrementToken()) {

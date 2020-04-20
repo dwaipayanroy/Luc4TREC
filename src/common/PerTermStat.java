@@ -34,17 +34,33 @@ public class PerTermStat {
      */
     private double  norm_cf;
 
+    /**
+     * Term weight (computed, e.g., using BM25 formula or RLM)
+     */
+    public double weight;
+
+    /**
+     * <code>cf</code> with respect to collection; <code>tf</code> with respect to document.
+     * @return <code>cf</code> - collection; <code>tf</code> - document.
+     */
     public long getCF() {return cf;}
     public long getDF() {return df;}
     public double getIDF() {return idf;}
     public double getNormalizedCF() {return norm_cf;}
+    public double getWeight() {return weight;}
 
     public void setCF(long cf) {this.cf = cf;}
     public void setDF(long df) {this.df = df;}
     public void setIDF(double idf) {this.idf = idf;}
     public void setNormalizedCF(double norm_cf) {this.norm_cf = norm_cf;}
+    public void setWeight(double weight) { this.weight = weight;}
 
     public PerTermStat() {        
+    }
+
+    public PerTermStat(String term, double weight) {
+        this.t = term;
+        this.weight = weight;
     }
 
     public PerTermStat(String term, long cf, long df) {

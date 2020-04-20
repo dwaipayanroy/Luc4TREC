@@ -1,11 +1,12 @@
 
 package indexer;
 
-import static common.CommonMethods.analyzeText;
-import static common.CommonVariables.FIELD_BOW;
-import static common.CommonVariables.FIELD_FULL_BOW;
-import static common.CommonVariables.FIELD_ID;
-import static common.CommonVariables.FIELD_META;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import static common.trec.DocField.FIELD_BOW;
+import static common.trec.DocField.FIELD_FULL_BOW;
+import static common.trec.DocField.FIELD_ID;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -19,6 +20,15 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
 import static common.CommonMethods.analyzeText;
+import java.util.Arrays;
+import java.util.List;
+import org.apache.lucene.document.LongField;
+import static common.wapo.DocField.WAPO_URL;
+import static common.wapo.DocField.WAPO_TITLE;
+import static common.wapo.DocField.WAPO_AUTHOR;
+import static common.wapo.DocField.WAPO_DATE;
+import static common.wapo.DocField.WAPO_CONTENT;
+import static common.wapo.DocField.WAPO_CATEGORY;
 
 /**
  * Processes (removes stopwords and stems; also, removes URLs, tags etc.) the content of each document
@@ -49,6 +59,8 @@ public class DocumentProcessor {
     String regExp = ":|_";
     Pattern p = Pattern.compile(regExp);
     // --- For replacing characters- ':','_'
+
+    public static final List<String> WAPO_CONTENT_TYPE_TAG = Arrays.asList("kicker", "sanitized_html", "title");
 
     /**
      * Removes the HTML tags from 'str' and returns the resultant string
@@ -178,11 +190,11 @@ public class DocumentProcessor {
         cleanContent = refineSpecialChars(cleanContent);
 
         // <uncomment>
-        /*
+//        /*
         // to analyze the text manually, uncomment following line;
         // needed in case we want to store the analyzed text 
         cleanContent = analyzeText(analyzer, cleanContent, FIELD_BOW).toString();
-        */
+//        */
         // </uncomment>
 
         // Field: FIELD_BOW
@@ -259,5 +271,72 @@ public class DocumentProcessor {
 
         return doc;
     } // ends processDocumentUsingJSoup()
+
+    protected Document processJsonDocument(String line) throws IOException {
+
+        Document doc = new Document();
+
+        org.jsoup.nodes.Document jsoupDoc;
+
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        JsonNode json = objectMapper.readTree(line);
+
+        JsonNode doc_id = json.get("id");
+        JsonNode url = json.get("article_url");
+        JsonNode title = json.get("title");
+        JsonNode author = json.get("author");
+        JsonNode date = json.get("published_date");
+        ArrayNode contents = (ArrayNode) json.get("contents");
+
+        String doc_category = "";
+
+        // System.out.println("DocID: " + doc_id);
+        StringBuffer rawContent = new StringBuffer();
+        String content_str;
+
+        for(JsonNode content : contents) {
+            if(content.get("type")!=null && WAPO_CONTENT_TYPE_TAG.contains(content.get("type").asText())) {
+                content_str = content.get("content").asText();
+                if(content.get("type").asText().equals("kicker"))
+                    doc_category = content_str;
+                rawContent.append(content_str).append("\n");
+            }
+        }
+
+        jsoupDoc = org.jsoup.Jsoup.parse(rawContent.toString(), "UTF-8");
+
+        cleanContent = jsoupDoc.text();
+
+        // Field: FIELD_ID
+        // The TREC-ID of the document.
+        doc.add(new StringField(FIELD_ID, doc_id.asText(), Field.Store.YES));
+
+        doc.add(new StringField(WAPO_URL, url.asText(), Field.Store.YES));
+
+        doc.add(new StringField(WAPO_TITLE, title.asText(), Field.Store.YES));
+
+        doc.add(new StringField(WAPO_AUTHOR, author.asText(), Field.Store.YES));
+
+        doc.add(new LongField(WAPO_DATE, (long)date.asLong(), Field.Store.YES));
+
+        doc.add(new StringField(WAPO_CATEGORY, doc_category, Field.Store.YES));
+
+        cleanContent = filterWebText(cleanContent);
+        cleanContent = refineSpecialChars(cleanContent);
+
+        // <uncomment>
+//        /*
+        // to analyze the text manually, uncomment following line;
+        // needed in case we want to store the analyzed text 
+        cleanContent = analyzeText(analyzer, cleanContent, WAPO_CONTENT).toString();
+//        */
+        // </uncomment>
+
+        doc.add(new Field(WAPO_CONTENT, cleanContent, 
+            Field.Store.valueOf(toStore), Field.Index.ANALYZED, Field.TermVector.valueOf(storeTermVector)));
+
+        return doc;
+    } // ends processJsonDocument()
 
 }

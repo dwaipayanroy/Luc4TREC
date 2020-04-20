@@ -21,7 +21,7 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
-import static common.CommonVariables.FIELD_ID;
+import static common.trec.DocField.FIELD_ID;
 import common.EnglishAnalyzerWithSmartStopword;
 import common.WebDocAnalyzer;
 

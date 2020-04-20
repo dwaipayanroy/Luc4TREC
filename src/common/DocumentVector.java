@@ -1,16 +1,29 @@
 
 package common;
 
-import static common.CommonVariables.FIELD_BOW;
+import static common.CommonMethods.analyzeText;
+import static common.trec.DocField.FIELD_BOW;
 import java.io.IOException;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
+import org.apache.lucene.analysis.en.EnglishAnalyzer;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.index.Fields;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.MultiFields;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
+import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.util.BytesRef;
 
 /**
@@ -61,10 +74,12 @@ public class DocumentVector {
     public int getDocSize() {return size;}
     public float getDocScore() {return docScore;}
 
+    public void setDocSize(int size) {this.size = size;}
+
     /**
      * Returns the document vector for a document with lucene-docid=luceneDocId
-       Returns dv containing 
-      1) docPerTermStat: a HashMap of (t,PerTermStat) type
+       Returns dv containing <br>
+      1) docPerTermStat : a HashMap of (t,PerTermStat) type <br>
       2) size : size of the document
      * @param luceneDocId
      * @param cs
@@ -214,5 +229,119 @@ public class DocumentVector {
             return t.getCF();
         else
             return 0;
+    }
+
+    /**
+     * Make document vector from RAW content (unanalyzed text)
+     * @param text
+     * @param analyzer
+     * @throws IOException 
+     */
+    private void makeVector(int luceneDocid, IndexSearcher searcher, Analyzer analyzer, String field, DocumentVector vector) throws IOException {
+
+        String text = searcher.doc(luceneDocid).get(field);
+
+        makeVector(text, analyzer, field, vector);
+    }
+
+    /**
+     * When the <b>analyzed</b> content is stored in Lucene index with id: <code>luceneDocid</code>.
+     * @param luceneDocid
+     * @param searcher
+     * @param field
+     * @param vector
+     * @throws IOException 
+     */
+    private void makeVector(int luceneDocid, IndexSearcher searcher, String field, DocumentVector vector) throws IOException {
+        
+        String text = searcher.doc(luceneDocid).get(field);
+
+        makeVector(text, new WhitespaceAnalyzer(), field, vector);
+    }
+
+    private void makeVector(String text, String field, DocumentVector vector) throws IOException {
+        makeVector(text, new WhitespaceAnalyzer(), field, vector);        
+    }
+
+    private void makeVector(String text, Analyzer analyzer, String field, DocumentVector vector) throws IOException {
+
+        TokenStream stream = analyzer.tokenStream(field, new StringReader(text));
+        CharTermAttribute termAtt = stream.addAttribute(CharTermAttribute.class);
+
+        stream.reset();
+
+        while (stream.incrementToken()) {
+            String term = termAtt.toString();
+            System.out.println(term);
+            vector.addTerm(term);
+        }
+
+        stream.end();
+        stream.close();
+
+    }
+
+    private void addTerm(String term) {
+
+        PerTermStat pts = docPerTermStat.get(term);
+        if(pts == null) {
+            docPerTermStat.put(term, new PerTermStat(term, 1, 1));
+        } else {
+            long tf = pts.getCF();
+            docPerTermStat.put(term, new PerTermStat(term, tf+1, 1));
+        }
+        size += 1.0;
+    }
+    
+    public void addTerm(String term, double weight) {
+
+        PerTermStat pts = docPerTermStat.get(term);
+        if(pts == null) {
+            docPerTermStat.put(term, new PerTermStat(term, weight));
+        } else {
+            double w = pts.getWeight();
+            docPerTermStat.put(term, new PerTermStat(term, w + weight));
+        }
+        size += weight;
+    }
+
+    /**
+     *
+     * @param numTopTerms
+     * @return
+     */
+    public List<PerTermStat> getTopTerms(int numTopTerms) {
+
+        Iterator<Map.Entry<String, PerTermStat>> iterator = docPerTermStat.entrySet().iterator();
+        ArrayList<PerTermStat> topTerms = new ArrayList<>();
+
+        while(iterator.hasNext()) {
+        // for each term of the document
+            Map.Entry<String, PerTermStat> termCompo = iterator.next();
+            PerTermStat pts = termCompo.getValue();
+            topTerms.add(pts);
+        }
+
+        // ++ sorting list in descending order
+        Collections.sort(topTerms, new Comparator<PerTermStat>(){
+            @Override
+            public int compare(PerTermStat t, PerTermStat t1) {
+                return t.weight<t1.weight?1:t.weight==t1.weight?0:-1;
+            }
+
+        });
+        // -- sorted list in descending order
+
+        return topTerms.subList(0, numTopTerms);
+    }
+
+    public List<PerTermStat> getTopTerms(DocumentVector dv, int numTopTerms) {
+        return dv.getTopTerms(numTopTerms);
+    }
+
+    public void unitTesting_makeVector () throws IOException {
+        String text = "The quick brown fox jumps over the lazy dog";
+        DocumentVector dv = new DocumentVector();
+        dv.makeVector(text, new EnglishAnalyzerWithSmartStopword().setAndGetEnglishAnalyzerWithSmartStopword(), null, dv);
     }
 }

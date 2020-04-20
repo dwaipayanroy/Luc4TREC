@@ -19,7 +19,7 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
-import static common.CommonVariables.FIELD_ID;
+import static common.trec.DocField.FIELD_ID;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 

@@ -18,8 +18,8 @@ import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
-import static common.CommonVariables.FIELD_BOW;
-import static common.CommonVariables.FIELD_ID;
+import static common.trec.DocField.FIELD_BOW;
+import static common.trec.DocField.FIELD_ID;
 
 /**
  *

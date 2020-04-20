@@ -1,310 +1,89 @@
-/**
- * TODO: queryField[] is not used. 
- * It works on only the title of the query.
- */
+
 package searcher;
 
-import static common.CommonVariables.FIELD_FULL_BOW;
-import static common.CommonVariables.FIELD_ID;
-import common.TRECQuery;
-import common.TRECQueryParser;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
+import static common.trec.DocField.FIELD_BOW;
+import static common.trec.DocField.FIELD_ID;
+import common.trec.TRECQuery;
+import common.trec.TRECQueryParser;
 import java.io.IOException;
 import java.util.List;
-import java.util.Properties;
-import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.document.Document;
-import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
-import org.apache.lucene.search.TopScoreDocCollector;
-import org.apache.lucene.search.similarities.AfterEffect;
-import org.apache.lucene.search.similarities.AfterEffectB;
-import org.apache.lucene.search.similarities.AfterEffectL;
-import org.apache.lucene.search.similarities.BM25Similarity;
-import org.apache.lucene.search.similarities.BasicModel;
-import org.apache.lucene.search.similarities.BasicModelBE;
-import org.apache.lucene.search.similarities.BasicModelD;
-import org.apache.lucene.search.similarities.BasicModelG;
-import org.apache.lucene.search.similarities.BasicModelIF;
-import org.apache.lucene.search.similarities.BasicModelIn;
-import org.apache.lucene.search.similarities.BasicModelIne;
-import org.apache.lucene.search.similarities.BasicModelP;
-import org.apache.lucene.search.similarities.DFRSimilarity;
-import org.apache.lucene.search.similarities.DefaultSimilarity;
-import org.apache.lucene.search.similarities.LMDirichletSimilarity;
-import org.apache.lucene.search.similarities.LMJelinekMercerSimilarity;
-import org.apache.lucene.search.similarities.Normalization;
-import org.apache.lucene.search.similarities.Normalization.NoNormalization;
-import org.apache.lucene.search.similarities.NormalizationH1;
-import org.apache.lucene.search.similarities.NormalizationH2;
-import org.apache.lucene.search.similarities.NormalizationH3;
-import org.apache.lucene.search.similarities.NormalizationZ;
-import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.FSDirectory;
 
 /**
  *
  * @author dwaipayan
  */
-public class DocSearcher {
+public class DocSearcher extends Searcher {
 
-    String          propPath;
-    Properties      prop;
-    IndexReader     indexReader;
-    IndexSearcher   indexSearcher;
-    String          indexPath;
-    File            indexFile;
-    String          stopFilePath;
-    String          queryPath;
-    File            queryFile;      // the query file
-    int             queryFieldFlag; // 1. title; 2. +desc, 3. +narr
-    String          []queryFields;  // to contain the fields of the query to be used for search
-    Analyzer        analyzer;
-
-    String          runName;
-    int             numHits;
-    boolean         boolIndexExists;
-    String          resPath;        // path of the res file
-    FileWriter      resFileWriter;  // the res file writer
     List<TRECQuery> queries;
     TRECQueryParser trecQueryparser;
-    String          fieldToSearch;
-    int             simFuncChoice;
-    float           param1, param2, param3;
 
     public DocSearcher(String propPath) throws IOException, Exception {
 
-        this.propPath = propPath;
-        prop = new Properties();
-        try {
-            prop.load(new FileReader(propPath));
-        } catch (IOException ex) {
-            System.err.println("Error: Properties file missing in "+propPath);
-            System.exit(1);
-        }
-        //----- Properties file loaded
-
-        // +++++ setting the analyzer with English Analyzer with Smart stopword list
-        stopFilePath = prop.getProperty("stopFilePath");
-        System.out.println("stopFilePath set to: " + stopFilePath);
-        common.EnglishAnalyzerWithSmartStopword engAnalyzer = new common.EnglishAnalyzerWithSmartStopword(stopFilePath);
-        analyzer = engAnalyzer.setAndGetEnglishAnalyzerWithSmartStopword();
-        // ----- analyzer set: analyzer
-
-        //+++++ index path setting 
-        indexPath = prop.getProperty("indexPath");
-        System.out.println("indexPath set to: " + indexPath);
-        indexFile = new File(indexPath);
-        Directory indexDir = FSDirectory.open(indexFile.toPath());
-
-        if (!DirectoryReader.indexExists(indexDir)) {
-            System.err.println("Index doesn't exists in "+indexPath);
-            boolIndexExists = false;
-            System.exit(1);
-        }
-        //----- index path set
-
-        /* setting query path */
-        queryPath = prop.getProperty("queryPath");
-        System.out.println("queryPath set to: " + queryPath);
-        queryFile = new File(queryPath);
-        queryFieldFlag = Integer.parseInt(prop.getProperty("queryFieldFlag"));
-        queryFields = new String[queryFieldFlag-1];
-        /* query path set */
-        // TODO: queryFields unused
+        super(propPath);
 
         /* constructing the query */
-        fieldToSearch = prop.getProperty("fieldToSearch", FIELD_FULL_BOW);
+        fieldToSearch = prop.getProperty("fieldToSearch", FIELD_BOW);
         System.out.println("Searching field for retrieval: " + fieldToSearch);
-        trecQueryparser = new TRECQueryParser(queryPath, analyzer, fieldToSearch);
-        queries = constructQueries();
+
+        trecQueryparser = new TRECQueryParser(queryPath, analyzer);
+        trecQueryparser.queryFileParse();
+        queries = trecQueryparser.queries;
         /* constructed the query */
 
-        simFuncChoice = Integer.parseInt(prop.getProperty("similarityFunction"));
-        if (null != prop.getProperty("param1"))
-            param1 = Float.parseFloat(prop.getProperty("param1"));
-        if (null != prop.getProperty("param2"))
-            param2 = Float.parseFloat(prop.getProperty("param2"));
-        if (null != prop.getProperty("param3"))
-            param3 = Float.parseFloat(prop.getProperty("param3"));
-
-        /* setting indexReader and indexSearcher */
-        indexReader = DirectoryReader.open(FSDirectory.open(indexFile.toPath()));
-
-        indexSearcher = new IndexSearcher(indexReader);
-        setSimilarityFunction(simFuncChoice, param1, param2, param3);
-
-        setRunName_ResFileName();
-
-        File fl = new File(resPath);
-        //if file exists, delete it
-        if(fl.exists())
-            System.out.println(fl.delete());
-
-        resFileWriter = new FileWriter(resPath, true);
-
-        /* res path set */
-        numHits = Integer.parseInt(prop.getProperty("numHits", "1000"));
-    }
-
-    private void setSimilarityFunction(int choice, float param1, float param2, float param3) {
-
-        switch(choice) {
-            case 0:
-                indexSearcher.setSimilarity(new DefaultSimilarity());
-                System.out.println("Similarity function set to DefaultSimilarity");
-                break;
-            case 1:
-                indexSearcher.setSimilarity(new BM25Similarity(param1, param2));
-                System.out.println("Similarity function set to BM25Similarity"
-                    + " with parameters: " + param1 + " " + param2);
-                break;
-            case 2:
-                indexSearcher.setSimilarity(new LMJelinekMercerSimilarity(param1));
-                System.out.println("Similarity function set to LMJelinekMercerSimilarity"
-                    + " with parameter: " + param1);
-                break;
-            case 3:
-                indexSearcher.setSimilarity(new LMDirichletSimilarity(param1));
-                System.out.println("Similarity function set to LMDirichletSimilarity"
-                    + " with parameter: " + param1);
-                break;
-            case 4:
-//                indexSearcher.setSimilarity(new DFRSimilarity(new BasicModelIF(), new AfterEffectB(), new NormalizationH2()));
-                BasicModel bm;
-                AfterEffect ae;
-                Normalization nor;
-                switch((int)param1){
-                    case 1:
-                        bm = new BasicModelBE();
-                        break;
-                    case 2:
-                        bm = new BasicModelD();
-                        break;
-                    case 3:
-                        bm = new BasicModelG();
-                        break;
-                    case 4:
-                        bm = new BasicModelIF();
-                        break;
-                    case 5:
-                        bm = new BasicModelIn();
-                        break;
-                    case 6:
-                        bm = new BasicModelIne();
-                        break;
-                    case 7:
-                        bm = new BasicModelP();
-                        break;
-                    default:
-                        bm = new BasicModelIF();
-                        break;
-                }
-                switch ((int)param2){
-                    case 1:
-                        ae = new AfterEffectB();
-                        break;
-                    case 2:
-                        ae = new AfterEffectL();
-                        break;
-                    default:
-                        ae = new AfterEffectB();
-                        break;
-                }
-                switch ((int)param3) {
-                    case 1:
-                        nor = new NormalizationH1();
-                        break;
-                    case 2:
-                        nor = new NormalizationH2();
-                        break;
-                    case 3:
-                        nor = new NormalizationH3();
-                        break;
-                    case 4:
-                        nor = new NormalizationZ();
-                        break;
-                    case 5:
-                        nor = new NoNormalization();
-                        break;
-                    default:
-                        nor = new NormalizationH2();
-                        break;
-                }
-//                bm = new BasicModelIF();
-                indexSearcher.setSimilarity(new DFRSimilarity(bm, ae, nor));
-                System.out.println("Similarity function set to DFRSimilarity with default parameters");
-                break;
-        }
-    }
-
-    private void setRunName_ResFileName() {
-
+        /* setting res path */
         runName = queryFile.getName()+"-"+fieldToSearch+"-"+indexSearcher.getSimilarity(true).
             toString().replace(" ", "-").replace("(", "").replace(")", "").replace("00000", "");
-        if(null == prop.getProperty("resPath"))
-            resPath = "/home/dwaipayan/";
-        else
-            resPath = prop.getProperty("resPath");
-        if(!resPath.endsWith("/"))
-            resPath = resPath+"/";
-        resPath = resPath+runName + ".res";
-        System.out.println("Result will be stored in: "+resPath);
+
+        setRunName();
     }
 
-    private List<TRECQuery> constructQueries() throws Exception {
+    /**
+     * Sets runName and resPath variables depending on similarity functions.
+     */
+    private void setRunName() throws IOException {
+        
+        /* setting res path */
+        runName = queryFile.getName()+"-"+fieldToSearch+"-"+indexSearcher.getSimilarity(true).
+            toString().replace(" ", "-").replace("(", "").replace(")", "").replace("00000", "");
 
-        trecQueryparser.queryFileParse();
-        return trecQueryparser.queries;
+        setResFileName(runName);
+
     }
 
-    public ScoreDoc[] retrieve(TRECQuery query) throws Exception {
+    public TopDocs retrieve(TRECQuery query) throws Exception {
 
-        ScoreDoc[] hits;
         TopDocs topDocs;
 
-        TopScoreDocCollector collector = TopScoreDocCollector.create(numHits);
-        Query luceneQuery = trecQueryparser.getAnalyzedQuery(query, 1);
+        query.fieldToSearch = fieldToSearch;
+        query.luceneQuery = query.makeBooleanQuery(query.qtitle, fieldToSearch, analyzer);
+        query.q_str = query.luceneQuery.toString(fieldToSearch);
 
-        System.out.println(query.qid+ ": " +luceneQuery.toString(fieldToSearch));
+        System.out.println(query.qid+": \t" + query.luceneQuery.toString(fieldToSearch));
 
-        indexSearcher.search(luceneQuery, collector);
-        topDocs = collector.topDocs();
-        hits = topDocs.scoreDocs;
-        if(hits == null)
-            System.out.println("Nothing found");
+        topDocs = search(query);
 
-        return hits;
+        return topDocs;
     }
 
     public void retrieveAll() throws Exception {
 
+        TopDocs topDocs;
         ScoreDoc[] hits;
-
 
         for (TRECQuery query : queries) {
 
-            hits = retrieve(query);
-            int hits_length = hits.length;
-            System.out.println(query.qid + ": documents retrieve: " +hits_length);
-            StringBuffer resBuffer = new StringBuffer();
+            topDocs = retrieve(query);
+            if(topDocs.totalHits == 0)
+                System.out.println(query.qid + ": documents retrieve: " + 0);
 
-            for (int i = 0; i < hits_length; ++i) {
-                int luceneDocId = hits[i].doc;
-                Document d = indexSearcher.doc(luceneDocId);
-                resBuffer.append(query.qid).append("\tQ0\t").
-                    append(d.get(FIELD_ID)).append("\t").
-                    append((i)).append("\t").
-                    append(hits[i].score).append("\t").
-                    append(runName).append("\n");                
+            else {
+                hits = topDocs.scoreDocs;
+                System.out.println(query.qid + ": documents retrieve: " +hits.length);
+                StringBuffer resBuffer = makeTRECResFile(query.qid, hits, indexSearcher, runName, FIELD_ID);
+                resFileWriter.write(resBuffer.toString());
             }
-            resFileWriter.write(resBuffer.toString());
         }
         resFileWriter.close();
         System.out.println("The result is saved in: "+resPath);

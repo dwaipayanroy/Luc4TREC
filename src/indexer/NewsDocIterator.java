@@ -6,6 +6,7 @@
 
 package indexer;
 
+import common.CommonMethods;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -24,8 +25,8 @@ import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
-import static common.CommonVariables.FIELD_BOW;
-import static common.CommonVariables.FIELD_ID;
+import static common.trec.DocField.FIELD_BOW;
+import static common.trec.DocField.FIELD_ID;
 /*import org.apache.lucene.document.TextField;*/
 
 /**
@@ -270,18 +271,7 @@ public class NewsDocIterator extends DocumentProcessor implements Iterator<Docum
 
                 StringBuffer tokenizedContentBuff = new StringBuffer();
 
-                TokenStream stream = analyzer.tokenStream(FIELD_BOW, 
-                    new StringReader(txt));
-                CharTermAttribute termAtt = stream.addAttribute(CharTermAttribute.class);
-                stream.reset();
-
-                while (stream.incrementToken()) {
-                    String term = termAtt.toString();
-                    tokenizedContentBuff.append(term).append(" ");
-                }
-
-                stream.end();
-                stream.close();
+                tokenizedContentBuff = CommonMethods.analyzeText(analyzer, txt, FIELD_BOW);
 
                 FileWriter fileWritter = new FileWriter(dumpPath, true);
                 BufferedWriter bufferWritter = new BufferedWriter(fileWritter);

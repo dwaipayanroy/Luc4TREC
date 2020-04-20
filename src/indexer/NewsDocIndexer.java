@@ -1,10 +1,3 @@
-/**
- * Incomplete.
- * WebDocIndexer.java
- * It indexes:
- *      1 - content (only the text part, excluding tags) FOR FEEDBACK
- *      2 - fullContent of the document (including tags) FOR 1st level Retrieval
- */
 
 package indexer;
 
@@ -22,7 +15,7 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
-import static common.CommonVariables.FIELD_ID;
+import static common.trec.DocField.FIELD_ID;
 import common.EnglishAnalyzerWithSmartStopword;
 
 /**
@@ -139,7 +132,7 @@ public class NewsDocIndexer {
                 iwcfg = new IndexWriterConfig(new WhitespaceAnalyzer());
                 iwcfg.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
                 indexWriter = new IndexWriter(indexDir, iwcfg);
-                // TODO: uncomment the tagged region in DocumentProcession.java
+                // TODO: uncomment the tagged region in DocumentProcession.java:181-185
             }
             else {
             // i.e. either RAW content or nothing will be stored
@@ -202,10 +195,8 @@ public class NewsDocIndexer {
             }
         } catch (FileNotFoundException ex) {
             System.err.println("Error: '"+file.getAbsolutePath()+"' not found");
-            ex.printStackTrace();
         } catch (IOException ex) {
             System.err.println("Error: IOException on reading '"+file.getAbsolutePath()+"'");
-            ex.printStackTrace();
         }
 
     }

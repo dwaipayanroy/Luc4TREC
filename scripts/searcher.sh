@@ -9,6 +9,7 @@ stopFilePath="$homepath/smart-stopwords"
 if [ ! -f $stopFilePath ]
 then
     echo "Please ensure that the path of the stopword-list-file is set in the .sh file."
+    exit 1;
 else
     echo "Using stopFilePath="$stopFilePath
 fi
@@ -37,7 +38,7 @@ indexPath=`readlink -f $1`		# absolute address of the index
 fieldToSearch=$2
 queryPath=`readlink -f $3`		# absolute address of the query file
 qff=$4
-resPath=`readlink -f $5`		# absolute directory path of the .res file
+resPath=`readlink -f $5`		# absolute directory path to store the .res file
 sf=$6
 resPath=$resPath"/"
 

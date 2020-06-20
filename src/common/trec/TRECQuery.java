@@ -4,15 +4,10 @@
  */
 package common.trec;
 
-import common.CommonMethods;
 import static common.CommonMethods.analyzeText;
 import common.Luc4TRECQuery;
 import static common.trec.DocField.FIELD_BOW;
-import java.io.StringReader;
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.TokenStream;
-import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
-import org.apache.lucene.search.Query;
 
 /**
  *

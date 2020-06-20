@@ -226,7 +226,7 @@ public class CollectionStatistics {
             //System.out.println(qTerm);
             if(null != perQueryStat) {
                 long tf = perQueryStat.getCF();
-                long docSize = dv.getDocSize();
+                double docSize = dv.getDocSize();
                 long cf = perTermStat.get(qTerm).getCF();
                 long collSize = getVocSize();
                 double singleTermScore = Math.log(1+((1-lambda)*tf/docSize)/(lambda * cf/collSize));

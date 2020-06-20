@@ -43,7 +43,7 @@ public class DocumentVector {
     /**
      * Size of the Document.
      */
-    private int                              size;
+    private double                           size;
     /**
      * The retrieval score of the document after a retrieval. *Mostly unused*
      */
@@ -70,8 +70,16 @@ public class DocumentVector {
         this.docScore = docScore;
     }
 
+    public DocumentVector(Luc4TRECQuery query) {
+        docPerTermStat = new HashMap<>();
+        for(String q : query.q_str.split(" ")) {
+            addTerm(q);
+        }
+        field = FIELD_BOW;
+    }
+
     public HashMap getDocPerTermStat() {return docPerTermStat;}
-    public int getDocSize() {return size;}
+    public double getDocSize() {return size;}
     public float getDocScore() {return docScore;}
 
     public void setDocSize(int size) {this.size = size;}

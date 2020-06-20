@@ -9,6 +9,7 @@
 package feedback;
 
 import common.CollectionStatistics;
+import common.Luc4TRECQuery;
 import static common.trec.DocField.FIELD_BOW;
 import static common.trec.DocField.FIELD_ID;
 import java.io.IOException;
@@ -21,6 +22,7 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.similarities.Similarity;
 import common.trec.TRECQuery;
 import common.trec.TRECQueryParser;
+import java.util.ArrayList;
 import org.apache.lucene.search.Query;
 import searcher.Searcher;
 
@@ -81,6 +83,18 @@ public class RelevanceBasedLanguageModel extends Searcher {
             collStat.buildCollectionStat();
             System.out.println("Collection Statistics building completed");
         }
+
+        // +++ TRF
+        trf = Boolean.parseBoolean(prop.getProperty("toTRF","false"));
+        if(trf) {
+            qrelPath = prop.getProperty("qrelPath");
+            ArrayList<String> queryIds = new ArrayList<>();
+            for (TRECQuery query : queries)
+                queryIds.add(query.qid);
+
+            allRelDocsFromQrelHashMap = common.CommonMethods.readJudgedDocsFromQrel(qrelPath, queryIds, indexReader, FIELD_ID, 1);
+        }
+        // --- TRF
 
         // numFeedbackTerms = number of top terms to select for query expansion
         numFeedbackTerms = Integer.parseInt(prop.getProperty("numFeedbackTerms"));
@@ -148,9 +162,28 @@ public class RelevanceBasedLanguageModel extends Searcher {
 
         for (TRECQuery query : queries) {
 
-            // + Initial retrieval
-            topDocs = retrieve(query, numFeedbackDocs);
-            // - Initial retrieval
+            switch("feedbackChoice") {
+                case "trf":
+                    // +++ TRF
+                    System.out.println("TRF from qrel");
+                    if(null == (topDocs = allRelDocsFromQrelHashMap.get(query.qid))) {
+                        System.err.println("Error: Query id: "+query.qid+
+                            " not present in qrel file");
+                        continue;
+                    }
+                    numFeedbackDocs = topDocs.scoreDocs.length;
+                    // --- TRF
+                    break;
+                case "prf":
+                default:
+                    // +++ PRF
+                    // + Initial retrieval
+                    topDocs = retrieve(query, numFeedbackDocs);
+                    // - Initial retrieval
+                    // --- PRF
+                    break;
+            }
+
             if(topDocs.totalHits == 0)
                 System.out.println(query.qid + ": documents retrieve: " + 0);
 

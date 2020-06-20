@@ -87,7 +87,6 @@ public class Luc4TRECQuery {
      * @param queryString
      * @param analyzer
      * @throws java.lang.Exception
-     * @Deprecated
      * TODO: incomplete.
      * Avoid using this; not complete.
      * Use the other one: <code>public void makeBooleanQuery (String queryString, String fieldToSearch, Analyzer analyzer)</code>

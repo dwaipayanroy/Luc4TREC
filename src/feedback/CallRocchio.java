@@ -1,7 +1,6 @@
 
 package feedback;
 
-import common.CollectionStatistics;
 import static common.trec.DocField.FIELD_BOW;
 import static common.trec.DocField.FIELD_ID;
 
@@ -15,6 +14,7 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.similarities.Similarity;
 import common.trec.TRECQuery;
 import common.trec.TRECQueryParser;
+import java.util.ArrayList;
 import org.apache.lucene.search.Query;
 import searcher.Searcher;
 
@@ -33,15 +33,16 @@ public class CallRocchio extends Searcher {
     List<TRECQuery> queries;
     TRECQueryParser trecQueryparser;
 
-    CollectionStatistics    collStat;
-
     HashMap<String, TopDocs> allTopDocsFromFileHashMap;     // For feedback from file, to contain all topdocs from file
 
     // +++ TRF
     String qrelPath;
-    boolean trf;    // true or false depending on whether True Relevance Feedback is choosen
-    HashMap<String, TopDocs> allRelDocsFromQrelHashMap;     // For TRF, to contain all true rel. docs.
+    String rf;    // P or T depending on Pseudo or True Relevance Feedback
+    HashMap<String, List<Integer>> allRelDocsFromQrelHashMap;     // For TRF, to contain all true rel. docs.
+    HashMap<String, List<Integer>> allNonRelDocsFromQrelHashMap;     // For TRF, to contain all true rel. docs.
     // --- TRF
+
+    double alpha, beta, gamma, k1, b;
 
     float           mixingLambda;    // mixing weight, used for doc-col weight distribution
     int             numFeedbackTerms;// number of feedback terms
@@ -65,23 +66,49 @@ public class CallRocchio extends Searcher {
         trecQueryparser = new TRECQueryParser(queryPath, analyzer);
         trecQueryparser.queryFileParse();
         queries = trecQueryparser.queries;
+
+        // analyze the query
+        for (TRECQuery query : queries) {
+            query.fieldToSearch = fieldToSearch;
+            query.luceneQuery = query.makeBooleanQuery(query.qtitle, fieldToSearch, analyzer);
+            query.q_str = query.luceneQuery.toString(fieldToSearch);
+        }
         /* constructed the query */
 
         fieldForFeedback = prop.getProperty("fieldForFeedback", FIELD_BOW);
         System.out.println("Field for Feedback: " + fieldForFeedback);
 
-        if(Boolean.parseBoolean(prop.getProperty("rm3.rerank", "false"))) {
-            collStat = new CollectionStatistics(indexPath, fieldForFeedback);
-            collStat.buildCollectionStat();
-            System.out.println("Collection Statistics building completed");
+        rf = prop.getProperty("RF","P");        // default is PRF
+        System.out.println("Doing " + rf + "RF.");
+        // +++ TRF
+        if(rf.toUpperCase().charAt(0) == 'T') {
+            qrelPath = prop.getProperty("qrelPath");
+            ArrayList<String> queryIds = new ArrayList<>();
+            for (TRECQuery query : queries)
+                queryIds.add(query.qid);
+    
+            allRelDocsFromQrelHashMap = new HashMap<>(); 
+            allNonRelDocsFromQrelHashMap = new HashMap<>();
+
+            common.CommonMethods.readJudgedDocsFromQrel(qrelPath, queryIds, indexReader, FIELD_ID, allRelDocsFromQrelHashMap, allNonRelDocsFromQrelHashMap);
         }
+        // --- TRF
 
         // numFeedbackTerms = number of top terms to select for query expansion
         numFeedbackTerms = Integer.parseInt(prop.getProperty("numFeedbackTerms"));
         // numFeedbackDocs = number of top documents to select for feedback
         numFeedbackDocs = Integer.parseInt(prop.getProperty("numFeedbackDocs"));
 
-        rocchio = new Rocchio(indexSearcher);
+        // + taking Rocchio parameter as inputs
+        alpha = Double.parseDouble(prop.getProperty("alpha", "1.0"));
+        beta = Double.parseDouble(prop.getProperty("beta", "0.75"));
+        gamma = Double.parseDouble(prop.getProperty("gamma", "0.10"));
+        k1 = Double.parseDouble(prop.getProperty("k1", "1.2"));
+        b = Double.parseDouble(prop.getProperty("b", "0.75"));
+
+//        rocchio = new Rocchio(indexSearcher);
+        rocchio = new Rocchio(indexSearcher, alpha, beta, gamma, k1, b);
+        // + taking Rocchio parameter as inputs
 
         setRunName();
     }
@@ -93,12 +120,10 @@ public class CallRocchio extends Searcher {
 
         Similarity s = indexSearcher.getSimilarity(true);
         runName = queryFile.getName()+"-"+s.toString()+"-D"+numFeedbackDocs+"-T"+numFeedbackTerms;
-        runName += "-rocchio-"+Float.parseFloat(prop.getProperty("rm3.queryMix", "0.98"));
+        runName += "-rocchio-"+alpha+"-"+beta+"-"+gamma+"-"+rf;
         runName += "-" + fieldToSearch + "-" + fieldForFeedback;
         runName = runName.replace(" ", "").replace("(", "").replace(")", "").replace("00000", "");
 
-        if(Boolean.parseBoolean(prop.getProperty("rm3.rerank")) == true)
-            runName += "-rerank";
         setResFileName(runName);
 
     } // ends setResFileName()
@@ -110,10 +135,6 @@ public class CallRocchio extends Searcher {
 
     public TopDocs retrieve(TRECQuery query, int numFeedbackDocs) throws Exception {
 
-        query.fieldToSearch = fieldToSearch;
-        query.luceneQuery = query.makeBooleanQuery(query.qtitle, fieldToSearch, analyzer);
-        query.q_str = query.luceneQuery.toString(fieldToSearch);
-
         System.out.println(query.qid+": \t" + query.luceneQuery.toString(fieldToSearch));
 
         return retrieve(query.luceneQuery, numFeedbackDocs);
@@ -123,39 +144,87 @@ public class CallRocchio extends Searcher {
         
         TopDocs topDocs;
 
+        System.out.println(luceneQuery.toString());
         topDocs = search(luceneQuery, numHits);
 
         return topDocs;
     }
 
+    public List<Integer> selectTopDocs (TopDocs topRetDocs, List<Integer> l2) {
+
+        ScoreDoc[] sd = topRetDocs.scoreDocs;
+        List<Integer> l1 = new ArrayList<>();
+
+        for (int i = 0; i < sd.length; i++) {
+            l1.add(i, sd[i].doc);
+        }
+        l1.retainAll(l2);
+
+        return l1;
+    }
+
     public void retrieveAll() throws Exception {
 
-        TopDocs topDocs;
+        TopDocs topRetDocs;             // top retrieved documents
+        List<Integer> trueRelDocs;             // top relevant documents
+        List<Integer> trueNonRelDocs = null;   // top non-relevant documents
         ScoreDoc[] hits;
 
         for (TRECQuery query : queries) {
 
+//            if(Integer.parseInt(query.qid)==143)
+            {
             // + Initial retrieval
-            topDocs = retrieve(query, numFeedbackDocs);
+            topRetDocs = retrieve(query, numFeedbackDocs);
             // - Initial retrieval
-            if(topDocs.totalHits == 0)
-                System.out.println(query.qid + ": documents retrieve: " + 0);
+            switch(rf) {
+                case "T":
+                    // +++ TRF
+                    System.out.println("TRF from qrel");
+                    if(null == (trueRelDocs = allRelDocsFromQrelHashMap.get(query.qid))) {
+                        System.err.println("No judged relevant documents found for Query id: "+query.qid);
+                        continue;
+                    }
+                    trueNonRelDocs = allNonRelDocsFromQrelHashMap.get(query.qid);
+                    // write a function select(topRetDocs, allNonRelDocs) that would return the intersection of the two
+                    // allNonRelDocs = select(topRetDocs, allNonRelDocs) 
+                    trueNonRelDocs = selectTopDocs(topRetDocs, trueNonRelDocs);
+                    numFeedbackDocs = topRetDocs.scoreDocs.length;
+                    // --- TRF
+                    break;
+                case "P":
+                default:
+                    // +++ PRF
+                    //topRelDocs = topRetDocs;
+                    trueRelDocs = new ArrayList<>();
+                    ScoreDoc[] sd = topRetDocs.scoreDocs;
+                    for(ScoreDoc s : sd) {
+                        trueRelDocs.add(s.doc);
+                    }
+                    // --- PRF
+                    break;
+            }
+
+            System.out.println(query.qid + ": retrieved documents available for feedback: " + topRetDocs.totalHits);
+            if(topRetDocs.totalHits == 0)
+                System.out.println("");
 
             else {
                 // + expanded retrieval
-                Query expanded_query = rocchio.expandQuery(topDocs, query, numFeedbackDocs, numFeedbackTerms);
-                topDocs = retrieve(expanded_query, numHits);
+                Query expanded_query = rocchio.expandQuery(trueRelDocs, trueNonRelDocs, query, numFeedbackDocs, numFeedbackTerms);
+                topRetDocs = retrieve(expanded_query, numHits);
                 // - expanded retrieval
 
-                hits = topDocs.scoreDocs;
+                hits = topRetDocs.scoreDocs;
                 if(hits == null)
-                    System.out.println("expanded retrieval: documents retrieve: " + 0);
+                    System.out.println(query.qid + ": expanded retrieval: documents retrieve: " + 0);
 
                 else {
                     System.out.println(query.qid + ": expanded retrieval: documents retrieve: " +hits.length);
                     StringBuffer resBuffer = makeTRECResFile(query.qid, hits, indexSearcher, runName, FIELD_ID);
                     resFileWriter.write(resBuffer.toString());
                 }
+            }
             }
         } // ends for each query
         resFileWriter.close();
@@ -164,27 +233,24 @@ public class CallRocchio extends Searcher {
     public static void main(String[] args) throws IOException, Exception {
 
         String usage = "java RelevanceBasedLanguageModel <properties-file>\n"
-            + "Properties file must contain the following fields:\n"
-            + "1. stopFilePath: path of the stopword file\n"
-            + "2. fieldToSearch: field of the index to be searched\n"
-            + "3. indexPath: Path of the index\n"
-            + "4. queryPath: path of the query file (in proper xml format)\n"
-            + "5. numFeedbackTerms: number of feedback terms to use\n"
-            + "6. numFeedbackDocs: number of feedback documents to use\n"
-            + "7. [numHits]: default-1000 - number of documents to retrieve\n"
-            + "8. rm3.queryMix (0.0-1.0): query mix to weight between P(w|R) and P(w|Q)\n"
-            + "9. [rm3.rerank]: default-0 - 1-Yes, 0-No\n"
-            + "10. resPath: path of the folder in which the res file will be created\n"
-            + "11. similarityFunction: 0.DefaultSimilarity, 1.BM25Similarity, 2.LMJelinekMercerSimilarity, 3.LMDirichletSimilarity\n"
-            + "12. param1: \n"
-            + "13. [param2]: optional if using BM25\n";
+                + " 1. Path of the index."
+                + " 2. Path of the query.xml file."
+                + " 3. Path of the res file."
+                + " 4. Number of expansion documents"
+                + " 5. Number of expansion terms"
+                + " 6. Field to be used for Search"
+                + " 7. Field to be used for Feedback"
+                + " 8. ALPHA:"
+                + " 9. BETA:"
+                + "10. GAMMA:"
+                + "11. T / P: TRF or PRF";
 
         if(1 != args.length) {
             System.out.println("Usage: " + usage);
+            // for debugging
             args = new String[1];
-            args[0] = "trec123.xmlrm3.D-10.T-40.S-content.F-content.properties";
-//            args[0] = "trblm-T-100.properties";
-//            System.exit(1);
+            args[0] = "trec3.xml-rocchio.D-10.T-40.S-content.F-1.2.properties";
+            System.exit(1);
         }
         CallRocchio rblm = new CallRocchio(args[0]);
 

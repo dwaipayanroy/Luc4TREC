@@ -72,6 +72,8 @@ public class DocSearcher extends Searcher {
         TopDocs topDocs;
         ScoreDoc[] hits;
 
+        StringBuffer resBuffer;
+
         for (TRECQuery query : queries) {
 
             topDocs = retrieve(query);
@@ -81,7 +83,7 @@ public class DocSearcher extends Searcher {
             else {
                 hits = topDocs.scoreDocs;
                 System.out.println(query.qid + ": documents retrieve: " +hits.length);
-                StringBuffer resBuffer = makeTRECResFile(query.qid, hits, indexSearcher, runName, FIELD_ID);
+                resBuffer = makeTRECResFile(query.qid, hits, indexSearcher, runName, FIELD_ID);
                 resFileWriter.write(resBuffer.toString());
             }
         }

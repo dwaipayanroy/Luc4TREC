@@ -3,25 +3,17 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/home/dwaipayan/Dropbox/programs/Luc4TREC/src/searcher/DocSearcher.java</file>
-            <file>file:/home/dwaipayan/Dropbox/programs/Luc4TREC/src/common/wapo/WapoQuery.java</file>
-            <file>file:/home/dwaipayan/Dropbox/programs/Luc4TREC/src/common/trec/TRECQueryParser.java</file>
-            <file>file:/home/dwaipayan/Dropbox/programs/Luc4TREC/src/common/EnglishAnalyzerWithSmartStopword.java</file>
-            <file>file:/home/dwaipayan/Dropbox/programs/Luc4TREC/src/feedback/WordProbability.java</file>
-            <file>file:/home/dwaipayan/Dropbox/programs/Luc4TREC/src/feedback/Rocchio.java</file>
-            <file>file:/home/dwaipayan/Dropbox/programs/Luc4TREC/src/common/CommonMethods.java</file>
-            <file>file:/home/dwaipayan/Dropbox/programs/Luc4TREC/src/feedback/RelevanceBasedLanguageModel.java</file>
-            <file>file:/home/dwaipayan/Dropbox/programs/Luc4TREC/src/common/wapo/GetAllCategories.java</file>
             <file>file:/home/dwaipayan/Dropbox/programs/Luc4TREC/src/searcher/WapoSearcher.java</file>
-            <file>file:/home/dwaipayan/Dropbox/programs/Luc4TREC/src/feedback/RLM.java</file>
-            <file>file:/home/dwaipayan/Dropbox/programs/Luc4TREC/src/common/Luc4TRECQuery.java</file>
+            <file>file:/home/dwaipayan/Dropbox/programs/Luc4TREC/src/indexer/DocumentProcessor.java</file>
+            <file>file:/home/dwaipayan/Dropbox/programs/Luc4TREC/src/common/CollectionStatistics.java</file>
+            <file>file:/home/dwaipayan/Dropbox/programs/Luc4TREC/src/common/wapo/WapoQuery.java</file>
             <file>file:/home/dwaipayan/Dropbox/programs/Luc4TREC/src/common/wapo/WapoQueryParser.java</file>
-            <file>file:/home/dwaipayan/Dropbox/programs/Luc4TREC/src/common/DocumentVector.java</file>
             <file>file:/home/dwaipayan/Dropbox/programs/Luc4TREC/src/searcher/Searcher.java</file>
-            <file>file:/home/dwaipayan/Dropbox/programs/Luc4TREC/src/feedback/CallRocchio.java</file>
+            <file>file:/home/dwaipayan/Dropbox/programs/Luc4TREC/src/indexer/WebDocIndexer.java</file>
+            <file>file:/home/dwaipayan/Dropbox/programs/Luc4TREC/src/indexer/NewsDocIterator.java</file>
             <file>file:/home/dwaipayan/Dropbox/programs/Luc4TREC/src/indexer/NewsDocIndexer.java</file>
             <file>file:/home/dwaipayan/Dropbox/programs/Luc4TREC/src/common/wapo/GetQueryArticles.java</file>
-            <file>file:/home/dwaipayan/Dropbox/programs/Luc4TREC/src/common/PerTermStat.java</file>
+            <file>file:/home/dwaipayan/Dropbox/programs/Luc4TREC/src/common/wapo/DocField.java</file>
         </group>
     </open-files>
 </project-private>

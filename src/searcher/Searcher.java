@@ -245,7 +245,7 @@ public class Searcher {
         File fl = new File(resPath);
         //if file exists, delete it
         if(fl.exists())
-            System.out.println(fl.delete());
+            System.out.println("Deleting existing res file: " + fl.delete());
 
         resFileWriter = new FileWriter(resPath, true);
         System.out.println("Result will be stored in: "+resPath);

@@ -339,4 +339,28 @@ public class DocumentProcessor {
         return doc;
     } // ends processJsonDocument()
 
+    /**
+     * For processing MSMarco documents.
+     * @param line
+     * @return
+     * @throws IOException 
+     */
+    protected Document processMSMarcoDocument(String line) throws IOException {
+
+        Document doc = new Document();
+
+        // tokens[0] = id
+        // tokens[1] = content
+        String tokens[] = line.split("\t");
+
+        // System.out.println("DocID: " + doc_id);
+
+        // Field: FIELD_ID
+        doc.add(new StringField(FIELD_ID, tokens[0], Field.Store.YES));
+
+        doc.add(new Field(FIELD_BOW, tokens[1], 
+            Field.Store.valueOf(toStore), Field.Index.ANALYZED, Field.TermVector.valueOf(storeTermVector)));
+
+        return doc;
+    }
 }
